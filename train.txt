@@ -1,0 +1,175 @@
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Scanner;
+
+class Train {
+    private String trainNumber;
+    private String trainName;
+    private int totalSeats;
+    private int availableSeats;
+
+    public Train(String trainNumber, String trainName, int totalSeats) {
+        this.trainNumber = trainNumber;
+        this.trainName = trainName;
+        this.totalSeats = totalSeats;
+        this.availableSeats = totalSeats;
+    }
+
+    public String getTrainNumber() {
+        return trainNumber;
+    }
+
+    public String getTrainName() {
+        return trainName;
+    }
+
+    public int getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public void bookTicket() {
+        if (availableSeats > 0) {
+            availableSeats--;
+        } else {
+            System.out.println("No seats available.");
+        }
+    }
+
+    public void cancelTicket() {
+        if (availableSeats < totalSeats) {
+            availableSeats++;
+        } else {
+            System.out.println("No tickets to cancel.");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Train Number: " + trainNumber + ", Train Name: " + trainName + ", Available Seats: " + availableSeats;
+    }
+}
+
+// TrainReservationSystem class to manage trains and bookings
+public class TrainReservationSystem {
+    private List<Train> trains;
+
+    public TrainReservationSystem() {
+        trains = new ArrayList<>();
+    }
+
+   
+    public void addTrain(Train train) {
+        trains.add(train);
+        System.out.println("Train added successfully.");
+    }
+
+   
+    public void removeTrain(String trainNumber) {
+        Iterator<Train> iterator = trains.iterator();
+        while (iterator.hasNext()) {
+            Train train = iterator.next();
+            if (train.getTrainNumber().equals(trainNumber)) {
+                iterator.remove();
+                System.out.println("Train removed successfully.");
+                return;
+            }
+        }
+        System.out.println("Train not found.");
+    }
+
+    
+    public void bookTicket(String trainNumber) {
+        for (Train train : trains) {
+            if (train.getTrainNumber().equals(trainNumber)) {
+                train.bookTicket();
+                System.out.println("Ticket booked successfully.");
+                return;
+            }
+        }
+        System.out.println("Train not found.");
+    }
+
+    public void cancelTicket(String trainNumber) {
+        for (Train train : trains) {
+            if (train.getTrainNumber().equals(trainNumber)) {
+                train.cancelTicket();
+                System.out.println("Ticket canceled successfully.");
+                return;
+            }
+        }
+        System.out.println("Train not found.");
+    }
+
+   
+    public void searchTrain(String trainNumber) {
+        for (Train train : trains) {
+            if (train.getTrainNumber().equals(trainNumber)) {
+                System.out.println(train);
+                return;
+            }
+        }
+        System.out.println("Train not found.");
+    }
+
+    // Display menu options
+    public static void main(String[] args) {
+        TrainReservationSystem system = new TrainReservationSystem();
+        Scanner scanner = new Scanner(System.in);
+        int choice;
+
+        do {
+            System.out.println("\nTrain Reservation System");
+            System.out.println("1. Add Train");
+            System.out.println("2. Remove Train");
+            System.out.println("3. Book Ticket");
+            System.out.println("4. Cancel Ticket");
+            System.out.println("5. Search Train");
+            System.out.println("6. Exit");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextInt();
+            scanner.nextLine();  
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter Train Number: ");
+                    String number = scanner.nextLine();
+                    System.out.print("Enter Train Name: ");
+                    String name = scanner.nextLine();
+                    System.out.print("Enter Total Seats: ");
+                    int seats = scanner.nextInt();
+                    scanner.nextLine();  
+                    Train train = new Train(number, name, seats);
+                    system.addTrain(train);
+                    break;
+                case 2:
+                    System.out.print("Enter Train Number to remove: ");
+                    String removeNumber = scanner.nextLine();
+                    system.removeTrain(removeNumber);
+                    break;
+                case 3:
+                    System.out.print("Enter Train Number to book ticket: ");
+                    String bookNumber = scanner.nextLine();
+                    system.bookTicket(bookNumber);
+                    break;
+                case 4:
+                    System.out.print("Enter Train Number to cancel ticket: ");
+                    String cancelNumber = scanner.nextLine();
+                    system.cancelTicket(cancelNumber);
+                    break;
+                case 5:
+                    System.out.print("Enter Train Number to search: ");
+                    String searchNumber = scanner.nextLine();
+                    system.searchTrain(searchNumber);
+                    break;
+                case 6:
+                    System.out.println("Exiting...");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        } while (choice != 6);
+
+        scanner.close();
+    }
+}
