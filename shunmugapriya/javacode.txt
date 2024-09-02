@@ -1,0 +1,177 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class SupermarketManagementSystem {
+
+    private static final String URL = "jdbc:mysql://localhost:3306/supermarket_db";
+    private static final String USER = "root";
+    private static final String PASSWORD = "password";
+
+    public static void main(String[] args) {
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            insertData(conn);
+            updateProductStock(conn, 1, 5); 
+            retrieveCustomerPurchaseHistory(conn, 1); 
+            listProductsByCategory(conn, "Beverages"); 
+            e.printStackTrace();
+        }
+    }
+
+    private static void insertData(Connection conn) throws SQLException {
+     
+        String insertCategorySQL = "INSERT INTO Categories (CategoryName) VALUES (?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(insertCategorySQL)) {
+            pstmt.setString(1, "Beverages");
+            pstmt.executeUpdate();
+            pstmt.setString(1, "Snacks");
+            pstmt.executeUpdate();
+            pstmt.setString(1, "Dairy");
+            pstmt.executeUpdate();
+        }
+
+        
+        String insertProductSQL = "INSERT INTO Products (ProductName, CategoryID, Price, StockQuantity) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(insertProductSQL)) {
+            pstmt.setString(1, "Coca Cola");
+            pstmt.setInt(2, 1); 
+            pstmt.setBigDecimal(3, new java.math.BigDecimal("1.99"));
+            pstmt.setInt(4, 100);
+            pstmt.executeUpdate();
+
+            pstmt.setString(1, "Lays Chips");
+            pstmt.setInt(2, 2); 
+            pstmt.setBigDecimal(3, new java.math.BigDecimal("2.49"));
+            pstmt.setInt(4, 150);
+            pstmt.executeUpdate();
+
+            pstmt.setString(1, "Milk");
+            pstmt.setInt(2, 3); 
+            pstmt.setBigDecimal(3, new java.math.BigDecimal("0.99"));
+            pstmt.setInt(4, 200);
+            pstmt.executeUpdate();
+        }
+
+        
+        String insertCustomerSQL = "INSERT INTO Customers (FirstName, LastName, Email, Phone) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(insertCustomerSQL)) {
+            pstmt.setString(1, "John");
+            pstmt.setString(2, "Doe");
+            pstmt.setString(3, "john.doe@example.com");
+            pstmt.setString(4, "1234567890");
+            pstmt.executeUpdate();
+
+            pstmt.setString(1, "Jane");
+            pstmt.setString(2, "Smith");
+            pstmt.setString(3, "jane.smith@example.com");
+            pstmt.setString(4, "0987654321");
+            pstmt.executeUpdate();
+        }
+
+        // Insert into Sales
+        String insertSaleSQL = "INSERT INTO Sales (CustomerID, TotalAmount) VALUES (?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(insertSaleSQL)) {
+            pstmt.setInt(1, 1); // CustomerID for John Doe
+            pstmt.setBigDecimal(2, new java.math.BigDecimal("10.00"));
+            pstmt.executeUpdate();
+
+            pstmt.setInt(1, 2); // CustomerID for Jane Smith
+            pstmt.setBigDecimal(2, new java.math.BigDecimal("15.00"));
+            pstmt.executeUpdate();
+        }
+
+       
+        String insertSaleItemSQL = "INSERT INTO SaleItems (SaleID, ProductID, Quantity, UnitPrice) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(insertSaleItemSQL)) {
+            pstmt.setInt(1, 1); 
+            pstmt.setInt(2, 1); 
+            pstmt.setInt(3, 5);
+            pstmt.setBigDecimal(4, new java.math.BigDecimal("1.99"));
+            pstmt.executeUpdate();
+
+            pstmt.setInt(1, 2); 
+            pstmt.setInt(2, 2); 
+            pstmt.setInt(3, 3);
+            pstmt.setBigDecimal(4, new java.math.BigDecimal("2.49"));
+            pstmt.executeUpdate();
+        }
+
+        String insertSupplierSQL = "INSERT INTO Suppliers (SupplierName, ContactEmail, Phone) VALUES (?, ?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(insertSupplierSQL)) {
+            pstmt.setString(1, "ABC Beverages");
+            pstmt.setString(2, "contact@abcbeverages.com");
+            pstmt.setString(3, "1112223333");
+            pstmt.executeUpdate();
+
+            pstmt.setString(1, "XYZ Snacks");
+            pstmt.setString(2, "info@xyzsnacks.com");
+            pstmt.setString(3, "4445556666");
+            pstmt.executeUpdate();
+        }
+
+        System.out.println("Values inserted successfully!");
+    }
+
+    
+    private static void updateProductStock(Connection conn, int productID, int quantitySold) throws SQLException {
+        String updateStockSQL = "UPDATE Products SET StockQuantity = StockQuantity - ? WHERE ProductID = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(updateStockSQL)) {
+            pstmt.setInt(1, quantitySold);
+            pstmt.setInt(2, productID);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Product stock updated successfully.");
+            } else {
+                System.out.println("Product not found.");
+            }
+        }
+    }
+
+  
+    private static void retrieveCustomerPurchaseHistory(Connection conn, int customerID) throws SQLException {
+        String purchaseHistorySQL = "SELECT Sales.SaleID, Sales.SaleDate, SaleItems.ProductID, SaleItems.Quantity, SaleItems.UnitPrice "
+                + "FROM Sales INNER JOIN SaleItems ON Sales.SaleID = SaleItems.SaleID "
+                + "WHERE Sales.CustomerID = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(purchaseHistorySQL)) {
+            pstmt.setInt(1, customerID);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                System.out.println("Purchase History for Customer ID " + customerID + ":");
+                while (rs.next()) {
+                    int saleID = rs.getInt("SaleID");
+                    String saleDate = rs.getString("SaleDate");
+                    int productID = rs.getInt("ProductID");
+                    int quantity = rs.getInt("Quantity");
+                    double unitPrice = rs.getDouble("UnitPrice");
+
+                    System.out.println("SaleID: " + saleID + ", Date: " + saleDate + ", ProductID: " + productID +
+                            ", Quantity: " + quantity + ", UnitPrice: $" + unitPrice);
+                }
+            }
+        }
+    }
+
+   
+    private static void listProductsByCategory(Connection conn, String categoryName) throws SQLException {
+        String listProductsSQL = "SELECT Products.ProductID, Products.ProductName, Products.Price, Products.StockQuantity "
+                + "FROM Products INNER JOIN Categories ON Products.CategoryID = Categories.CategoryID "
+                + "WHERE Categories.CategoryName = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(listProductsSQL)) {
+            pstmt.setString(1, categoryName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                System.out.println("Products in Category: " + categoryName);
+                while (rs.next()) {
+                    int productID = rs.getInt("ProductID");
+                    String productName = rs.getString("ProductName");
+                    double price = rs.getDouble("Price");
+                    int stockQuantity = rs.getInt("StockQuantity");
+
+                    System.out.println("ProductID: " + productID + ", Name: " + productName + ", Price: $" + price +
+                            ", Stock: " + stockQuantity);
+                }
+            }
+        }
+    }
+}
